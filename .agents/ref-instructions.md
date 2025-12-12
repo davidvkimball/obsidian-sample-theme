@@ -11,14 +11,38 @@ Applicability: Both
 
 The `.ref` folder is a gitignored directory used to store reference materials, documentation, and cloned repositories that are useful for development but should not be committed to version control.
 
+## Folder Organization
+
+The `.ref` folder is organized as follows:
+
+- **Root level**: Base Obsidian repositories (API, official docs, sample projects)
+  - `obsidian-api/`
+  - `obsidian-sample-plugin/`
+  - `obsidian-developer-docs/`
+  - `obsidian-plugin-docs/`
+  - `obsidian-sample-theme/`
+
+- **`plugins/`**: Community plugins you want to reference
+  - Drop any plugins here for reference and learning
+  - Example: `.ref/plugins/some-community-plugin/`
+
+- **`themes/`**: Community themes you want to reference
+  - Drop any themes here for reference and learning
+  - Example: `.ref/themes/some-community-theme/`
+
 ## For AI Agents
 
 **IMPORTANT**: When the user asks you to reference something in `.ref`, actively search for it. The `.ref` folder may be hidden by default in some file explorers, but it exists in the project root. Use tools like `list_dir`, `glob_file_search`, or `read_file` to access `.ref` contents.
 
+**Organization to remember**:
+- Base Obsidian repos are in `.ref/` root (e.g., `.ref/obsidian-api/`)
+- Community plugins are in `.ref/plugins/` (e.g., `.ref/plugins/plugin-name/`)
+- Community themes are in `.ref/themes/` (e.g., `.ref/themes/theme-name/`)
+
 If you cannot find `.ref` initially, try:
 - Listing the root directory with hidden files enabled
 - Using `glob_file_search` with pattern `.ref/**`
-- Directly reading files with paths like `.ref/obsidian-api/README.md`
+- Directly reading files with paths like `.ref/obsidian-api/README.md` or `.ref/plugins/plugin-name/main.ts`
 
 ## Symlink Strategy for Windows
 
@@ -100,12 +124,27 @@ Then update each clone separately when needed.
 
 ### Common Reference Repositories
 
+**Base Obsidian Repositories (Root Level)**:
 - `obsidian-api`: Official Obsidian API documentation and type definitions
 - `obsidian-sample-plugin`: Template plugin with best practices (contains `AGENTS.md` to sync from)
 - `obsidian-developer-docs`: Source vault for docs.obsidian.md (official documentation)
 - `obsidian-plugin-docs`: Plugin-specific documentation and guides
 - `obsidian-sample-theme`: Theme template (useful for organizational patterns, less critical for plugins)
-- Other community plugins: For reference and learning
+
+**Community References (Organized in Subfolders)**:
+- `plugins/`: Add community plugins here for reference and learning
+- `themes/`: Add community themes here for reference and learning
+
+**To add a community plugin or theme**:
+```powershell
+# For a plugin
+cd .ref\plugins
+git clone https://github.com/username/plugin-name.git plugin-name
+
+# For a theme
+cd .ref\themes
+git clone https://github.com/username/theme-name.git theme-name
+```
 
 **Note**: See [sync-procedure.md](sync-procedure.md) for the standard procedure to keep `.agents` content synchronized with updates from these repositories.
 
@@ -117,6 +156,18 @@ Sometimes you want to reference another project on your PC that's specific to th
 
 **Use when**: Referencing an external project or repository where you want to check for updates periodically, or you're not actively developing it alongside this project.
 
+**For community plugins or themes**, use the organized subfolders:
+```powershell
+# For a community plugin
+cd .ref\plugins
+git clone https://github.com/username/plugin-name.git plugin-name
+
+# For a community theme
+cd .ref\themes
+git clone https://github.com/username/theme-name.git theme-name
+```
+
+**For other projects** (not plugins/themes), clone directly into `.ref`:
 ```powershell
 # From your project root
 cd .ref
@@ -154,10 +205,14 @@ cmd /c mklink /J .ref\project-name C:\path\to\local\project
 - Changes in original project are immediately visible
 - Perfect for projects you're actively developing alongside this one
 
-**Example**:
+**Examples**:
 ```powershell
 # Reference another Obsidian plugin you're working on concurrently
-cmd /c mklink /J .ref\my-other-plugin C:\Users\david\Development\my-other-plugin
+# (can go in plugins/ subfolder or root, depending on preference)
+cmd /c mklink /J .ref\plugins\my-other-plugin C:\Users\david\Development\my-other-plugin
+
+# Or reference a theme you're developing
+cmd /c mklink /J .ref\themes\my-theme C:\Users\david\Development\my-theme
 ```
 
 **Note**: With symlinks, any changes you make to the original project are immediately visible in `.ref/project-name/` - no need to pull or sync.
@@ -167,7 +222,11 @@ cmd /c mklink /J .ref\my-other-plugin C:\Users\david\Development\my-other-plugin
 If the project isn't a Git repo and you just need a one-time snapshot:
 
 ```powershell
-# Copy the entire project folder
+# For plugins or themes, use the organized subfolders
+Copy-Item -Path C:\path\to\local\plugin -Destination .ref\plugins\plugin-name -Recurse
+Copy-Item -Path C:\path\to\local\theme -Destination .ref\themes\theme-name -Recurse
+
+# For other projects, copy directly to .ref
 Copy-Item -Path C:\path\to\local\project -Destination .ref\project-name -Recurse
 ```
 
@@ -181,10 +240,15 @@ Copy-Item -Path C:\path\to\local\project -Destination .ref\project-name -Recurse
 ### Quick Workflow
 
 1. **Decide which option** based on your use case (see above)
-2. **Add to `.ref`** using the appropriate method
-3. **Reference in your work** - AI agents can now access it via `.ref/project-name/`
+2. **Add to `.ref`** using the appropriate method:
+   - **Plugins/Themes**: Use `plugins/` or `themes/` subfolders for organization
+   - **Other projects**: Add directly to `.ref/` root
+3. **Reference in your work** - AI agents can now access it via:
+   - `.ref/plugins/plugin-name/` for plugins
+   - `.ref/themes/theme-name/` for themes
+   - `.ref/project-name/` for other projects
 4. **Update as needed**:
-   - **Option A (Git)**: `cd .ref/project-name && git pull` when you want to check for updates
+   - **Option A (Git)**: `cd .ref/plugins/plugin-name && git pull` (or appropriate path)
    - **Option B (Symlink)**: Changes automatically visible - no action needed
    - **Option C (Copy)**: Re-copy if you need a fresh snapshot
 
