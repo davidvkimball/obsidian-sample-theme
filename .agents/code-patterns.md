@@ -564,9 +564,9 @@ async createFile(path: string, content: string): Promise<TFile> {
   return await this.app.vault.create(path, content);
 }
 
-// Delete a file
+// Delete a file (respects user's trash preference)
 async deleteFile(file: TFile): Promise<void> {
-  await this.app.vault.delete(file);
+  await this.app.fileManager.trashFile(file);
 }
 
 // Check if file exists
