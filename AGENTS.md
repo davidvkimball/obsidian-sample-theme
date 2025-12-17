@@ -94,7 +94,7 @@ None currently. This project follows the general `.agents` guidance.
 
 ### When to Consider Using `.agents/.context/` Directory
 
-If your project needs project-specific versions of multiple `.agents` files (e.g., custom `build-workflow.md`, `code-patterns.md`, etc.), consider creating a `.agents/.context/` directory structure. This advanced feature is optional and only needed for complex projects. See the Navigation section below for details on the `.context/` directory structure.
+If your project needs project-specific versions of multiple `.agents` files (e.g., custom `build-workflow.md`, etc.), consider creating a `.agents/.context/` directory structure. This advanced feature is optional and only needed for complex projects. See the Navigation section below for details on the `.context/` directory structure.
 
 ---
 
@@ -117,9 +117,7 @@ If your project needs project-specific versions of multiple `.agents` files (e.g
 
 4. Check [environment.md](.agents/environment.md) for setup requirements
 
-5. Review [common-tasks.md](.agents/common-tasks.md) for quick code snippets
-
-6. See [code-patterns.md](.agents/code-patterns.md) for complete examples
+5. Bookmark [quick-reference.md](.agents/quick-reference.md) for common commands
 
 7. Bookmark [quick-reference.md](.agents/quick-reference.md) for common commands
 
@@ -294,11 +292,10 @@ If your project needs project-specific versions of multiple `.agents` files (e.g
    - [project-overview.md](.agents/project-overview.md) - Project structure
    - [environment.md](.agents/environment.md) - Setup and tooling
    - [file-conventions.md](.agents/file-conventions.md) - File organization
-   - [common-tasks.md](.agents/common-tasks.md) - Code examples
    - [references.md](.agents/references.md) - Official documentation links
    - **Set up `.ref` folder**: Run the setup script (`scripts/setup-ref-links.bat` or `.sh`) to configure reference materials
 
-**Key files**: [project-overview.md](.agents/project-overview.md), [common-tasks.md](.agents/common-tasks.md), [references.md](.agents/references.md), [ref-instructions.md](.agents/ref-instructions.md)
+**Key files**: [project-overview.md](.agents/project-overview.md), [references.md](.agents/references.md), [ref-instructions.md](.agents/ref-instructions.md)
 
 ## Static vs. Project-Specific Files
 
@@ -334,9 +331,9 @@ This documentation is organized into topic-based files in the `.agents/` directo
 
 **Quick Links by Task**:
 - **Starting a new project** → [project-overview.md](.agents/project-overview.md), [environment.md](.agents/environment.md), [file-conventions.md](.agents/file-conventions.md)
-- **Making code changes** → [build-workflow.md](.agents/build-workflow.md) (run build after changes!), [common-tasks.md](.agents/common-tasks.md), [code-patterns.md](.agents/code-patterns.md)
-- **Preparing for release** → [release-readiness.md](.agents/release-readiness.md) (comprehensive checklist), [versioning-releases.md](.agents/versioning-releases.md), [testing.md](.agents/testing.md)
-- **Troubleshooting** → [troubleshooting.md](.agents/troubleshooting.md), [common-pitfalls.md](.agents/common-pitfalls.md), [build-workflow.md](.agents/build-workflow.md)
+- **Making code changes** → [build-workflow.md](.agents/build-workflow.md) (run build after changes if using build tools!)
+- **Preparing for release** → [versioning-releases.md](.agents/versioning-releases.md), [testing.md](.agents/testing.md)
+- **Troubleshooting** → [troubleshooting.md](.agents/troubleshooting.md), [build-workflow.md](.agents/build-workflow.md)
 - **Quick reference** → [quick-reference.md](.agents/quick-reference.md) (one-page cheat sheet)
 
 ## Navigation
@@ -345,8 +342,7 @@ This documentation is organized into topic-based files in the `.agents/` directo
 - **Starting a new project** → See Quick Start above
 - **Need to understand project structure** → [project-overview.md](.agents/project-overview.md)
 - **Setting up development environment** → [environment.md](.agents/environment.md)
-- **Looking for code examples** → [common-tasks.md](.agents/common-tasks.md) (quick) or [code-patterns.md](.agents/code-patterns.md) (comprehensive)
-- **Troubleshooting issues** → [troubleshooting.md](.agents/troubleshooting.md) or [common-pitfalls.md](.agents/common-pitfalls.md)
+- **Troubleshooting issues** → [troubleshooting.md](.agents/troubleshooting.md)
 - **Need a quick command reference** → [quick-reference.md](.agents/quick-reference.md)
 - **Working with `.ref` folder** → [ref-instructions.md](.agents/ref-instructions.md)
 
@@ -355,14 +351,12 @@ This documentation is organized into topic-based files in the `.agents/` directo
 - **`.agents/.context/` directory** - Optional project-specific structure for complex projects (advanced)
 
 ### Core Development
-- **[project-overview.md](.agents/project-overview.md)** - Project structure, entry points, and artifacts (Plugin/Theme)
-- **[environment.md](.agents/environment.md)** - Development environment and tooling (Plugin/Theme)
-- **[file-conventions.md](.agents/file-conventions.md)** - File organization and folder structure (Plugin/Theme)
-- **[coding-conventions.md](.agents/coding-conventions.md)** - Code standards and organization (Plugin)
+- **[project-overview.md](.agents/project-overview.md)** - Project structure, entry points, and artifacts (Theme)
+- **[environment.md](.agents/environment.md)** - Development environment and tooling (Theme)
+- **[file-conventions.md](.agents/file-conventions.md)** - File organization and folder structure (Theme)
 
 ### Configuration
-- **[manifest.md](.agents/manifest.md)** - `manifest.json` rules and requirements (Plugin/Theme)
-- **[commands-settings.md](.agents/commands-settings.md)** - Commands and settings patterns (Plugin)
+- **[manifest.md](.agents/manifest.md)** - `manifest.json` rules and requirements (Theme)
 - **[versioning-releases.md](.agents/versioning-releases.md)** - Versioning and GitHub release workflow (Both)
 
 ### Best Practices
@@ -372,12 +366,8 @@ This documentation is organized into topic-based files in the `.agents/` directo
 - **[mobile.md](.agents/mobile.md)** - Mobile compatibility considerations (Both)
 
 ### Development Workflow
-- **[build-workflow.md](.agents/build-workflow.md)** - **CRITICAL**: Build commands to run after changes (Plugin/Theme)
-- **[testing.md](.agents/testing.md)** - Testing and manual installation procedures (Plugin/Theme)
-- **[release-readiness.md](.agents/release-readiness.md)** - Comprehensive release readiness checklist (Plugin)
-- **[common-tasks.md](.agents/common-tasks.md)** - Code examples and common patterns - expanded with settings, modals, views, status bar, ribbon icons (Plugin/Theme)
-- **[code-patterns.md](.agents/code-patterns.md)** - Comprehensive code patterns for settings tabs, modals, views, file operations, workspace events (Plugin)
-- **[common-pitfalls.md](.agents/common-pitfalls.md)** - Common mistakes and gotchas to avoid (Plugin)
+- **[build-workflow.md](.agents/build-workflow.md)** - Build commands to run after changes (if using build tools) (Theme)
+- **[testing.md](.agents/testing.md)** - Testing and manual installation procedures (Theme)
 - **[troubleshooting.md](.agents/troubleshooting.md)** - Common issues, error messages, and debugging techniques (Both)
 - **[quick-reference.md](.agents/quick-reference.md)** - One-page cheat sheet for common tasks and commands (Both)
 - **[agent-dos-donts.md](.agents/agent-dos-donts.md)** - Specific do's and don'ts for AI agents (Both)
@@ -481,7 +471,6 @@ Everything else syncs from official Obsidian sources.
 - Check this `AGENTS.md` file for project-specific references
 - Use `list_dir` or `glob_file_search` to search `.ref/` folder
 
-**If build fails**:
+**If build fails** (if using build tools):
 - See [build-workflow.md](.agents/build-workflow.md) for build commands
 - See [troubleshooting.md](.agents/troubleshooting.md) for common issues
-- See [common-pitfalls.md](.agents/common-pitfalls.md) for common mistakes

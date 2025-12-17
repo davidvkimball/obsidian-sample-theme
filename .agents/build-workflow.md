@@ -60,7 +60,7 @@ If your theme uses build tools (Grunt, npm scripts, SCSS compiler, etc.):
    - If npm is not found, inform the user that Node.js (which includes npm) needs to be installed
    - Do not automatically install npm - let the user handle installation
 
-3. **Check for errors** and fix any build issues before proceeding. See [troubleshooting.md](troubleshooting.md) and [common-pitfalls.md](common-pitfalls.md) for common build issues.
+3. **Check for errors** and fix any build issues before proceeding. See [troubleshooting.md](troubleshooting.md) for common build issues.
 
 ## Why This Matters
 
