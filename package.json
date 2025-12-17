@@ -5,8 +5,8 @@
 	"author": "",
 	"license": "0BSD",
 	"scripts": {
-		"lint": "stylelint \"*.css\"",
-		"lint:fix": "stylelint \"*.css\" --fix",
+		"lint": "node scripts/lint-wrapper.mjs",
+		"lint:fix": "node scripts/lint-wrapper.mjs --fix",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"devDependencies": {

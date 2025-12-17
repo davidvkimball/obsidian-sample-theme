@@ -7,11 +7,12 @@
  * - Updates package.json with Stylelint devDependencies and scripts
  * - Generates .stylelintrc.json configuration file
  * - Generates .stylelintignore file
+ * - Copies lint-wrapper.mjs for helpful linting success messages
  * 
  * Usage: node scripts/setup-stylelint.mjs
  */
 
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -22,9 +23,43 @@ const STYLELINT_DEPS = {
 };
 
 const STYLELINT_SCRIPTS = {
-	"lint": "stylelint \"*.css\"",
-	"lint:fix": "stylelint \"*.css\" --fix"
+	"lint": "node scripts/lint-wrapper.mjs",
+	"lint:fix": "node scripts/lint-wrapper.mjs --fix"
 };
+
+function generateLintWrapper() {
+	return `#!/usr/bin/env node
+
+/**
+ * Stylelint wrapper that adds helpful success messages
+ */
+
+import { spawn } from 'child_process';
+import process from 'process';
+
+const args = process.argv.slice(2);
+const hasFix = args.includes('--fix');
+
+// Run Stylelint
+const stylelint = spawn('npx', ['stylelint', '*.css', ...args], {
+	stdio: 'inherit',
+	shell: true
+});
+
+stylelint.on('close', (code) => {
+	if (code === 0) {
+		const message = hasFix 
+			? '\\n✓ CSS linting complete! All issues fixed automatically.\\n'
+			: '\\n✓ CSS linting passed! No issues found.\\n';
+		console.log(message);
+		process.exit(0);
+	} else {
+		// Stylelint already printed errors, just exit with the code
+		process.exit(code);
+	}
+});
+`;
+}
 
 function generateStylelintConfig(customRules = {}) {
 	// Default configuration for Obsidian themes
@@ -205,6 +240,31 @@ function setupStylelint() {
 			}
 		}
 		
+		// Generate and copy lint-wrapper.mjs if it doesn't exist or needs updating
+		const lintWrapperPath = join(projectRoot, 'scripts', 'lint-wrapper.mjs');
+		const lintWrapperSource = generateLintWrapper();
+		let lintWrapperUpdated = false;
+		
+		// Ensure scripts directory exists
+		const scriptsDir = join(projectRoot, 'scripts');
+		if (!existsSync(scriptsDir)) {
+			mkdirSync(scriptsDir, { recursive: true });
+		}
+		
+		if (!existsSync(lintWrapperPath)) {
+			writeFileSync(lintWrapperPath, lintWrapperSource, 'utf8');
+			console.log('✓ Created scripts/lint-wrapper.mjs');
+			lintWrapperUpdated = true;
+		} else {
+			// Update if content differs (in case of updates)
+			const existingContent = readFileSync(lintWrapperPath, 'utf8');
+			if (existingContent !== lintWrapperSource) {
+				writeFileSync(lintWrapperPath, lintWrapperSource, 'utf8');
+				console.log('✓ Updated scripts/lint-wrapper.mjs');
+				lintWrapperUpdated = true;
+			}
+		}
+		
 		if (updated) {
 			// Write back to package.json with proper formatting
 			const updatedContent = JSON.stringify(packageJson, null, '\t') + '\n';
@@ -212,7 +272,7 @@ function setupStylelint() {
 			console.log('\n✓ package.json updated successfully!');
 		}
 		
-		if (updated || stylelintConfigUpdated || stylelintIgnoreUpdated) {
+		if (updated || stylelintConfigUpdated || stylelintIgnoreUpdated || lintWrapperUpdated) {
 			console.log('\n✓ Stylelint setup complete!');
 			console.log('\nNext steps:');
 			console.log('  1. Run: npm install');

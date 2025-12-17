@@ -77,7 +77,10 @@ These tools and plugins can significantly improve your theme development workflo
    - **Windows**: `scripts\setup-ref-links.bat`
    - **macOS/Linux**: `./scripts/setup-ref-links.sh`
 4. **Start developing**: Edit `theme.css` to customize your theme
+   - **Note**: Themes don't need a build step - just edit `theme.css` directly and reload Obsidian
 5. **Optional: Check CSS quality**: Run `npm run lint` to validate your CSS (requires npm install)
+   - Shows helpful success message when linting passes
+   - Uses `scripts/lint-wrapper.mjs` (automatically created by setup script)
 
 ### For Existing Themes (Upgrading to This System)
 
@@ -110,15 +113,17 @@ You can add these enhancements to your existing theme:
 - Generates `.stylelintrc.json` configuration file (with Obsidian browser compatibility rules)
 - Generates `.stylelintignore` file
 - Migrates rules from existing Stylelint configs (if present)
+- Copies `lint-wrapper.mjs` for helpful linting success messages
 
 **Usage:**
 ```bash
 node scripts/setup-stylelint.mjs
 npm install
-npm run lint
+npm run lint        # Shows helpful success message when passing
+npm run lint:fix     # Shows helpful success message when fixed
 ```
 
-**Note:** Stylelint is pre-configured in this template. The setup script is primarily for adding Stylelint to existing themes or updating the configuration.
+**Note:** Stylelint is pre-configured in this template. The setup script is primarily for adding Stylelint to existing themes or updating the configuration. The lint commands use `scripts/lint-wrapper.mjs` which adds helpful success messages when linting passes.
 
 ### Reference Materials Setup (`scripts/setup-ref-links.*`)
 
