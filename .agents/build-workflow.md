@@ -33,22 +33,28 @@ After making any changes to theme code:
 
 ### Simple CSS Themes
 
-If your theme is simple with just `theme.css` and no build tools:
+If your theme is simple with just `theme.css` in the root and no build tools:
 
 - **No build step required** - just edit `theme.css` directly
-- Changes take effect immediately when Obsidian reloads the theme
+- Changes take effect immediately when Obsidian reloads the theme (reload Obsidian with Ctrl+R / Cmd+R)
+- **Linting**: Run `npm run lint` to check CSS quality (optional but recommended)
 
-### Themes with Build Tools
+**How to detect**: If you have `theme.css` in root and no `src/scss/` directory, you have a simple CSS theme.
 
-If your theme uses build tools (Grunt, npm scripts, SCSS compiler, etc.):
+### Complex Themes (SCSS + Build Tools)
+
+If your theme uses build tools (Grunt, npm scripts, SCSS compiler, etc.) and has `src/scss/` directory:
 
 1. **Run the build** (assume npm is already installed):
    ```powershell
-   # For themes using Grunt
+   # For themes using Grunt (like obsidian-oxygen)
    npx grunt build
    
    # For themes using npm scripts
    npm run build
+   
+   # For themes using Grunt watch mode (auto-rebuild on changes)
+   npx grunt
    
    # Or whatever build command your theme uses
    ```
@@ -61,6 +67,15 @@ If your theme uses build tools (Grunt, npm scripts, SCSS compiler, etc.):
    - Do not automatically install npm - let the user handle installation
 
 3. **Check for errors** and fix any build issues before proceeding. See [troubleshooting.md](troubleshooting.md) for common build issues.
+
+4. **Linting**: Run `npm run lint` to check SCSS/CSS quality. The lint wrapper automatically detects SCSS files in `src/scss/` and lints them appropriately.
+
+**How to detect**: If you have a `src/scss/` directory, you have a complex theme with build tools. Check for `Gruntfile.js`, `package.json` scripts, or other build configuration files.
+
+**Common build tools**:
+- **Grunt**: Look for `Gruntfile.js` → Run `npx grunt build` or `npx grunt` (watch mode)
+- **npm scripts**: Check `package.json` for `build` script → Run `npm run build`
+- **Sass CLI**: Some themes use `sass` directly → Check `package.json` scripts
 
 ## Why This Matters
 

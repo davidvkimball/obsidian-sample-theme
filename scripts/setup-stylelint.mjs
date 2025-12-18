@@ -12,7 +12,7 @@
  * Usage: node scripts/setup-stylelint.mjs
  */
 
-import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -21,6 +21,12 @@ const STYLELINT_DEPS = {
 	"stylelint-config-recommended": "^13.0.0",
 	"stylelint-no-unsupported-browser-features": "^7.0.0"
 };
+
+// Optional dependencies for SCSS themes (version 5.x is compatible with stylelint 15)
+const STYLELINT_SCSS_DEP = "stylelint-scss";
+const STYLELINT_SCSS_VERSION = "^5.0.0";
+const POSTCSS_SCSS_DEP = "postcss-scss";
+const POSTCSS_SCSS_VERSION = "^4.0.0";
 
 const STYLELINT_SCRIPTS = {
 	"lint": "node scripts/lint-wrapper.mjs",
@@ -31,17 +37,143 @@ function generateLintWrapper() {
 	return `#!/usr/bin/env node
 
 /**
- * Stylelint wrapper that adds helpful success messages
+ * Stylelint wrapper that detects theme structure and lints appropriately
+ * 
+ * Handles two theme patterns:
+ * 1. Simple CSS themes: theme.css in root (no build step)
+ * 2. Complex themes: SCSS in src/scss/ (with build tools like Grunt)
  */
 
 import { spawn } from 'child_process';
+import { existsSync, statSync, readFileSync } from 'fs';
+import { join } from 'path';
 import process from 'process';
 
 const args = process.argv.slice(2);
 const hasFix = args.includes('--fix');
 
+// Detect theme structure
+const hasThemeCss = existsSync('theme.css');
+const hasScssSource = existsSync('src/scss') && statSync('src/scss').isDirectory();
+
+// Determine what to lint
+let filesToLint = [];
+let needsScssPlugin = false;
+
+if (hasScssSource) {
+	// Complex theme with SCSS source files
+	filesToLint.push('src/scss/**/*.scss');
+	needsScssPlugin = true;
+	
+	// Also lint compiled CSS if it exists
+	if (hasThemeCss) {
+		filesToLint.push('theme.css');
+	}
+} else if (hasThemeCss) {
+	// Simple CSS theme - just lint theme.css
+	filesToLint.push('theme.css');
+} else {
+	console.error('Error: No theme.css or src/scss/ directory found.');
+	console.error('Expected either:');
+	console.error('  - Simple CSS theme: theme.css in root');
+	console.error('  - Complex theme: src/scss/ directory with SCSS files');
+	process.exit(1);
+}
+
+// Check if SCSS linting dependencies are needed and configured
+if (needsScssPlugin) {
+	let scssPluginInstalled = false;
+	let postcssScssInstalled = false;
+	let scssPluginConfigured = false;
+	let customSyntaxConfigured = false;
+	
+	// Check if required packages are installed
+	try {
+		const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+		const allDeps = {
+			...packageJson.dependencies || {},
+			...packageJson.devDependencies || {}
+		};
+		scssPluginInstalled = 'stylelint-scss' in allDeps;
+		postcssScssInstalled = 'postcss-scss' in allDeps;
+	} catch (error) {
+		// If we can't read package.json, continue anyway
+	}
+	
+	// Check if SCSS configuration is set up in .stylelintrc.json
+	try {
+		if (existsSync('.stylelintrc.json')) {
+			const stylelintConfig = JSON.parse(readFileSync('.stylelintrc.json', 'utf8'));
+			const plugins = stylelintConfig.plugins || [];
+			scssPluginConfigured = Array.isArray(plugins) && plugins.includes('stylelint-scss');
+			
+			// Check for customSyntax at root level (legacy) or in overrides section (Stylelint v15 best practice)
+			customSyntaxConfigured = stylelintConfig.customSyntax === 'postcss-scss';
+			if (!customSyntaxConfigured && stylelintConfig.overrides && Array.isArray(stylelintConfig.overrides)) {
+				customSyntaxConfigured = stylelintConfig.overrides.some(override => {
+					if (override.customSyntax === 'postcss-scss') {
+						// Check if files array includes SCSS patterns
+						if (override.files && Array.isArray(override.files)) {
+							return override.files.some(pattern => 
+								typeof pattern === 'string' && (pattern.includes('*.scss') || pattern.includes('**/*.scss') || pattern.includes('scss'))
+							);
+						}
+						// If no files specified, assume it applies to all files (including SCSS)
+						return true;
+					}
+					return false;
+				});
+			}
+		}
+	} catch (error) {
+		// If we can't read config, continue anyway
+	}
+	
+	// Provide helpful guidance if anything is missing
+	if (!scssPluginInstalled || !postcssScssInstalled || !scssPluginConfigured || !customSyntaxConfigured) {
+		console.error('\\n⚠ SCSS files detected, but SCSS linting is not properly set up.\\n');
+		
+		if (!scssPluginInstalled) {
+			console.error('Missing: stylelint-scss package');
+			console.error('  Install it: npm install --save-dev stylelint-scss@^5.0.0\\n');
+		}
+		
+		if (!postcssScssInstalled) {
+			console.error('Missing: postcss-scss package (required for SCSS syntax parsing)');
+			console.error('  Install it: npm install --save-dev postcss-scss@^4.0.0\\n');
+		}
+		
+		if (!scssPluginConfigured || !customSyntaxConfigured) {
+			console.error('Missing: SCSS configuration in .stylelintrc.json');
+			console.error('  Add "stylelint-scss" to the "plugins" array');
+			console.error('  Add "customSyntax": "postcss-scss" in an "overrides" section (Stylelint v15 best practice)\\n');
+		}
+		
+		console.error('Example .stylelintrc.json configuration:');
+		console.error(JSON.stringify({
+			extends: ['stylelint-config-recommended'],
+			plugins: ['stylelint-scss', 'stylelint-no-unsupported-browser-features'],
+			rules: {
+				'at-rule-no-unknown': [true, {
+					ignoreAtRules: ['use', 'import', 'mixin', 'include', 'function', 'if', 'else', 'each', 'for', 'while', 'extend']
+				}]
+			},
+			overrides: [{
+				files: ['**/*.scss'],
+				customSyntax: 'postcss-scss'
+			}]
+		}, null, 2));
+		console.error('');
+		console.error('After installing and configuring, run: npm run lint\\n');
+		process.exit(1);
+	}
+}
+
+// Build stylelint command
+const stylelintArgs = ['stylelint', ...filesToLint, ...args];
+
 // Run Stylelint
-const stylelint = spawn('npx', ['stylelint', '*.css', ...args], {
+const stylelint = spawn('npx', stylelintArgs, {
 	stdio: 'inherit',
 	shell: true
 });
@@ -49,8 +181,8 @@ const stylelint = spawn('npx', ['stylelint', '*.css', ...args], {
 stylelint.on('close', (code) => {
 	if (code === 0) {
 		const message = hasFix 
-			? '\\n✓ CSS linting complete! All issues fixed automatically.\\n'
-			: '\\n✓ CSS linting passed! No issues found.\\n';
+			? '\\n✓ CSS/SCSS linting complete! All issues fixed automatically.\\n'
+			: '\\n✓ CSS/SCSS linting passed! No issues found.\\n';
 		console.log(message);
 		process.exit(0);
 	} else {
@@ -61,22 +193,64 @@ stylelint.on('close', (code) => {
 `;
 }
 
-function generateStylelintConfig(customRules = {}) {
+function generateStylelintConfig(customRules = {}, hasScssFiles = false) {
 	// Default configuration for Obsidian themes
+	const plugins = ["stylelint-no-unsupported-browser-features"];
+	
 	const defaultConfig = {
 		"extends": ["stylelint-config-recommended"],
-		"plugins": ["stylelint-no-unsupported-browser-features"],
+		"plugins": plugins,
 		"rules": {
 			"plugin/no-unsupported-browser-features": [
 				true,
 				{
 					"browsers": ["last 10 Chrome versions", "last 3 iOS versions"],
-					"ignore": ["css-masks"],
+					"ignore": ["css-masks", "css-selection"],
 					"ignorePartialSupport": true
 				}
 			]
 		}
 	};
+	
+	// Add SCSS-specific configuration if SCSS files are detected
+	if (hasScssFiles) {
+		plugins.unshift("stylelint-scss"); // Add at beginning for better visibility
+		// Allow SCSS-specific at-rules
+		defaultConfig.rules["at-rule-no-unknown"] = [
+			true,
+			{
+				"ignoreAtRules": [
+					"use",
+					"import",
+					"forward",
+					"mixin",
+					"include",
+					"function",
+					"return",
+					"if",
+					"else",
+					"each",
+					"for",
+					"while",
+					"extend",
+					"warn",
+					"error",
+					"debug",
+					"at-root",
+					"content"
+				]
+			}
+		];
+		
+		// Use overrides section for SCSS files (Stylelint v15 best practice)
+		// This applies customSyntax only to SCSS files, not CSS files
+		defaultConfig.overrides = [
+			{
+				"files": ["**/*.scss"],
+				"customSyntax": "postcss-scss"
+			}
+		];
+	}
 	
 	// Merge custom rules with defaults (custom rules take precedence)
 	const rules = { ...defaultConfig.rules, ...customRules };
@@ -158,17 +332,36 @@ function setupStylelint() {
 			customRules = migrateStylelintrc(stylelintConfigPath);
 		}
 		
+		// Detect if SCSS files exist
+		const scssSourcePath = join(projectRoot, 'src', 'scss');
+		const hasScssFiles = existsSync(scssSourcePath) && statSync(scssSourcePath).isDirectory();
+		
 		// Add or update Stylelint devDependencies
 		if (!packageJson.devDependencies) {
 			packageJson.devDependencies = {};
 			updated = true;
 		}
 		
+		// Add required Stylelint dependencies
 		for (const [dep, version] of Object.entries(STYLELINT_DEPS)) {
 			if (!packageJson.devDependencies[dep] || packageJson.devDependencies[dep] !== version) {
 				packageJson.devDependencies[dep] = version;
 				updated = true;
 				console.log(`✓ Added/updated devDependency: ${dep}@${version}`);
+			}
+		}
+		
+		// Add stylelint-scss and postcss-scss if SCSS files are detected
+		if (hasScssFiles) {
+			if (!packageJson.devDependencies[STYLELINT_SCSS_DEP] || packageJson.devDependencies[STYLELINT_SCSS_DEP] !== STYLELINT_SCSS_VERSION) {
+				packageJson.devDependencies[STYLELINT_SCSS_DEP] = STYLELINT_SCSS_VERSION;
+				updated = true;
+				console.log(`✓ Added/updated devDependency: ${STYLELINT_SCSS_DEP}@${STYLELINT_SCSS_VERSION} (detected SCSS files)`);
+			}
+			if (!packageJson.devDependencies[POSTCSS_SCSS_DEP] || packageJson.devDependencies[POSTCSS_SCSS_DEP] !== POSTCSS_SCSS_VERSION) {
+				packageJson.devDependencies[POSTCSS_SCSS_DEP] = POSTCSS_SCSS_VERSION;
+				updated = true;
+				console.log(`✓ Added/updated devDependency: ${POSTCSS_SCSS_DEP}@${POSTCSS_SCSS_VERSION} (required for SCSS syntax parsing)`);
 			}
 		}
 		
@@ -193,7 +386,7 @@ function setupStylelint() {
 		
 		// Generate .stylelintrc.json file
 		let stylelintConfigUpdated = false;
-		const config = generateStylelintConfig(customRules);
+		const config = generateStylelintConfig(customRules, hasScssFiles);
 		const newConfig = JSON.stringify(config, null, '\t') + '\n';
 		
 		if (!existsSync(stylelintConfigPath)) {
@@ -205,8 +398,24 @@ function setupStylelint() {
 			const existingContent = readFileSync(stylelintConfigPath, 'utf8');
 			const existingConfig = JSON.parse(existingContent);
 			
-			// Check if config needs updating (simplified check)
-			if (JSON.stringify(existingConfig, null, '\t') !== JSON.stringify(config, null, '\t')) {
+			// Check if config needs updating
+			// Compare key aspects: ignore list, overrides, plugins, and rules
+			const needsUpdate = 
+				// Check if ignore list is missing css-selection
+				(!existingConfig.rules?.["plugin/no-unsupported-browser-features"]?.[1]?.ignore?.includes("css-selection") && 
+				 config.rules["plugin/no-unsupported-browser-features"][1].ignore.includes("css-selection")) ||
+				// Check if SCSS overrides are missing when SCSS files exist
+				(hasScssFiles && !existingConfig.overrides) ||
+				// Check if overrides structure is incorrect
+				(hasScssFiles && existingConfig.overrides && 
+				 (!existingConfig.overrides[0]?.files?.includes("**/*.scss") || 
+				  existingConfig.overrides[0]?.customSyntax !== "postcss-scss")) ||
+				// Check if customSyntax is at root level when it should be in overrides
+				(hasScssFiles && existingConfig.customSyntax && !existingConfig.overrides) ||
+				// Full comparison as fallback
+				JSON.stringify(existingConfig, null, '\t') !== JSON.stringify(config, null, '\t');
+			
+			if (needsUpdate) {
 				writeFileSync(stylelintConfigPath, newConfig, 'utf8');
 				console.log('✓ Updated .stylelintrc.json configuration file');
 				stylelintConfigUpdated = true;
@@ -274,11 +483,17 @@ function setupStylelint() {
 		
 		if (updated || stylelintConfigUpdated || stylelintIgnoreUpdated || lintWrapperUpdated) {
 			console.log('\n✓ Stylelint setup complete!');
+			if (hasScssFiles) {
+				console.log('  Detected SCSS files - stylelint-scss has been configured');
+			}
 			console.log('\nNext steps:');
 			console.log('  1. Run: npm install');
 			console.log('  2. Run: npm run lint');
 		} else {
 			console.log('✓ Everything is already set up correctly!');
+			if (hasScssFiles) {
+				console.log('  SCSS files detected - stylelint-scss is configured');
+			}
 			console.log('  Run: npm run lint');
 		}
 		

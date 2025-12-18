@@ -45,8 +45,10 @@ This is the **Obsidian Sample Theme** - a reference/template theme that demonstr
 - Code should remain simple and well-commented for educational purposes
 - Examples should demonstrate one concept clearly rather than complex integrations
 - Follow the standard Obsidian theme structure (theme.css, manifest.json)
-- **Default build pattern**: This template assumes simple CSS themes with no build step (edit `theme.css` directly)
-- **Complex theme patterns**: Some themes use build tools for SCSS compilation, but this template doesn't require them
+- **Theme structure variance**: This template supports both patterns:
+  - **Simple CSS theme**: `theme.css` in root (default, no build step)
+  - **Complex theme**: `src/scss/` directory with build tools (Grunt, npm scripts, etc.)
+- **Linting**: The lint wrapper automatically detects which pattern is used and lints appropriately
 
 ### Project-Specific References
 
@@ -76,15 +78,22 @@ None currently. This project follows the general `.agents` guidance.
 
 ### Theme Build Patterns
 
-**This Template (Simple CSS Theme)**:
+**This Template Supports Both Patterns**:
+
+**Simple CSS Theme** (Default):
 - No build step required - just edit `theme.css` directly
 - Changes take effect when Obsidian reloads the theme
 - **Linting**: Run `npm run lint` to check CSS quality (optional but recommended)
 - **Note**: This template includes Stylelint (requires `npm install`), but the theme itself works without npm. You can edit `theme.css` directly without npm, but linting requires it.
 
-**Complex Themes** (Not applicable to this template):
-- Some themes use build tools (Grunt, npm scripts, SCSS compilers) for compilation
-- This template is for simple CSS themes and doesn't require build tools
+**Complex Themes with Build Tools** (Supported):
+- Themes can use build tools (Grunt, npm scripts, SCSS compilers) for compilation
+- Source files in `src/scss/` compile to `theme.css`
+- **Linting**: The lint wrapper automatically detects `src/scss/` and lints SCSS files appropriately
+- **Example**: The `obsidian-oxygen` theme uses this pattern with Grunt
+- See [file-conventions.md](.agents/file-conventions.md) and [build-workflow.md](.agents/build-workflow.md) for details
+
+The lint wrapper and documentation automatically handle both patterns, so you can use whichever structure fits your theme.
 
 ### Development Notes
 

@@ -21,7 +21,7 @@ Applicability: Both
 - **Plugins**: **Always run `npm run build` after making changes** to catch build errors early. Only check for npm installation if the build fails. See [build-workflow.md](build-workflow.md) for details.
 - **Themes**: Use consistent CSS variable naming conventions.
 - **Themes**: Test themes in both light and dark modes.
-- **Themes**: **Always run `npx grunt build` after making changes** to catch build errors early. Only check for npm installation if the build fails. See [build-workflow.md](build-workflow.md) for details.
+- **Themes**: **Always run the build command after making changes** (if using build tools) to catch build errors early. For simple CSS themes, no build step is needed. For complex themes with build tools, run the appropriate build command (e.g., `npx grunt build` for Grunt, `npm run build` for npm scripts). Only check for npm installation if the build fails. See [build-workflow.md](build-workflow.md) for details.
 - **Summarize commands**: When user requests "Summarize" or "Summarize for release", follow the workflow in [summarize-commands.md](summarize-commands.md). Always read actual file changes, not just chat history.
 - **Release preparation**: When user asks "is my plugin ready for release?" or similar, use [release-readiness.md](release-readiness.md) checklist. Run automated checks where possible, ask user interactively for items requiring their input (like platform testing).
 

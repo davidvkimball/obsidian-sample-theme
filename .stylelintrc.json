@@ -6,7 +6,7 @@
 			true,
 			{
 				"browsers": ["last 10 Chrome versions", "last 3 iOS versions"],
-				"ignore": ["css-masks"],
+				"ignore": ["css-masks", "css-selection"],
 				"ignorePartialSupport": true
 			}
 		]
