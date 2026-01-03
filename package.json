@@ -4,7 +4,7 @@
 	"description": "This is a sample theme for Obsidian (https://obsidian.md)",
 	"type": "module",
 	"author": "",
-	"license": "0BSD",
+	"license": "MIT",
 	"scripts": {
 		"preinstall": "node scripts/npm-proxy.mjs",
 		"lint": "node scripts/lint-wrapper.mjs",
